@@ -1,0 +1,40 @@
+#!/bin/bash
+#BASH script to serve files
+#Usage: serve <filename>
+#if root then port 80 is used, else port 660
+
+FILE=$1;
+#TODO: split FILENAME from FILE
+PORT=6600;
+#TODO: Add dynamic ports
+
+[[ $UID = 0 ]] && PORT=80 #I know it's a bad idea
+
+if [[ ! -e $FILE ]]; then
+	echo "File does not exist";
+	exit 1;
+fi
+
+
+date=$(date +"%a, %d %b %Y %H:%M:%S %Z")
+
+size=`du -b $FILE | awk '{print $1}'`
+echo $size
+header="HTTP/1.1 200 OK\r\n\
+Server: Netcat File Server\r\n\
+Date: $date\r\n\
+Content-type: application/octet-stream\r\n\
+Content-Length: $size\r\n\
+Connection: close\r\n\
+Content-Disposition: attachment; filename=\"$FILE\"
+Last Modified:$date\r\n\r\n";
+shout(){
+	printf "%s$header";
+	cat $FILE
+	printf "%s\c"
+}
+
+#TODO: Include Error if port is in use
+shout | nc -l -p $PORT
+
+#TODO: Read about file descriptors
