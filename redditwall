@@ -1,0 +1,89 @@
+#!/bin/env python3
+import json
+from urllib.parse import urlparse
+import urllib.request
+import os
+import random
+import sys
+
+cache = []
+SOURCE_DIR = "Pictures/walls/"
+CACHE_DIR = "cache/"
+WALL_DIR = "wallpaper/"
+
+
+def is_image(http_message):
+    return "image" in http_message.getheader("Content-Type")
+
+
+def get_charset(http_message):
+    cset = http_message.get_content_charset()
+    if len(cset) == 0:
+        cset = 'utf-8'
+    return cset
+
+
+def get_image(url):
+    filename = urlparse(url).path.split('/')[-1]
+    if filename in cache:
+        return open(CACHE_DIR + filename, "rb"), True
+    img_response = urllib.request.urlopen(url)
+    if not is_image(img_response):
+        return None, False
+    if "content-disposition" in img_response.info().keys():
+        filename = img_response.info().get("content-disposition")
+    fp = open(CACHE_DIR + filename, "wb")
+    fp.write(img_response.read())
+    fp.close()
+    fp = open(CACHE_DIR + filename, "rb")
+    return fp, True
+
+
+def init_cache():
+    global cache
+    cache = os.listdir(CACHE_DIR)
+    return cache
+
+
+if __name__ == "__main__":
+    os.chdir(os.getenv("HOME") + "/" + SOURCE_DIR)
+    cache = init_cache()
+    try:
+        oldwall = WALL_DIR+os.listdir(WALL_DIR)[0]
+    except IndexError:
+        oldwall = ""
+    if len(sys.argv) > 1:
+        subreddit = sys.argv[1]
+    else:
+        subreddit = "gmbwallpapers"  # Default subreddit
+
+    print("Getting wallpaper from: " + subreddit)
+    response = urllib.request.urlopen("http://reddit.com/r/" + subreddit + ".json")
+    body = response.read()
+    headers = response.getheader("Content-Type").split(';')
+
+    #TODO: Handle non json requests
+    charset = headers[1].split("=")[1].lower()
+    if len(charset) == 0:
+        charset = 'utf-8'  # Default
+    content = body.decode(charset)
+    js = json.loads(content)
+    children = js.get("data").get("children")
+    #TODO: Warning Possibility of infinite loop
+    image_file = None
+    while True:
+        child = random.choice(children)
+        data = child.get("data")
+        print("Trying: " + data.get("title"))
+        image_url = data.get("url")
+        image_file, isimage = get_image(image_url)
+        if isimage:
+            print("Getting: " + data.get("title"))
+            break
+    content = image_file.read()
+    newfile = WALL_DIR+"wallpaper"+os.path.splitext(image_file.name)[1]
+    tfp = open(newfile, "wb")
+    tfp.write(content)
+    tfp.close()
+    if oldwall != newfile and oldwall != "":
+        os.remove(WALL_DIR+oldwall)
