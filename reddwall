@@ -45,20 +45,16 @@ def init_cache():
     return cache
 
 
-if __name__ == "__main__":
-    os.chdir(os.getenv("HOME") + "/" + SOURCE_DIR)
-    cache = init_cache()
-    try:
-        oldwall = WALL_DIR+os.listdir(WALL_DIR)[0]
-    except IndexError:
-        oldwall = ""
-    if len(sys.argv) > 1:
-        subreddit = sys.argv[1]
-    else:
-        subreddit = "gmbwallpapers"  # Default subreddit
+def get_from_cache():
+    print("Getting wallpaper from local cache")
+    filename = random.choice(cache)
+    image_file = open(CACHE_DIR + filename, "rb")
+    return image_file
 
-    print("Getting wallpaper from: " + subreddit)
-    response = urllib.request.urlopen("http://reddit.com/r/" + subreddit + ".json")
+
+def get_from_subreddit(subred):
+    print("Getting wallpaper from: " + subred)
+    response = urllib.request.urlopen("http://reddit.com/r/" + subred + ".json")
     body = response.read()
     headers = response.getheader("Content-Type").split(';')
 
@@ -66,8 +62,8 @@ if __name__ == "__main__":
     charset = headers[1].split("=")[1].lower()
     if len(charset) == 0:
         charset = 'utf-8'  # Default
-    content = body.decode(charset)
-    js = json.loads(content)
+    json_response = body.decode(charset)
+    js = json.loads(json_response)
     children = js.get("data").get("children")
     #TODO: Warning Possibility of infinite loop
     image_file = None
@@ -80,8 +76,23 @@ if __name__ == "__main__":
         if isimage:
             print("Getting: " + data.get("title"))
             break
-    content = image_file.read()
-    newfile = WALL_DIR+"wallpaper"+os.path.splitext(image_file.name)[1]
+    return image_file
+
+if __name__ == "__main__":
+    os.chdir(os.getenv("HOME") + "/" + SOURCE_DIR)
+    cache = init_cache()
+    try:
+        oldwall = WALL_DIR+os.listdir(WALL_DIR)[0]
+    except IndexError:
+        oldwall = ""
+    if len(sys.argv) > 1:
+        subreddit = sys.argv[1]
+        img_file = get_from_subreddit(subreddit)
+    else:
+        img_file = get_from_cache()
+
+    content = img_file.read()
+    newfile = WALL_DIR+"wallpaper"+os.path.splitext(img_file.name)[1]
     tfp = open(newfile, "wb")
     tfp.write(content)
     tfp.close()
