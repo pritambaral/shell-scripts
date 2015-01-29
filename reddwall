@@ -72,6 +72,7 @@ def get_from_subreddit(subred):
         data = child.get("data")
         print("Trying: " + data.get("title"))
         image_url = data.get("url")
+        print("`- " + image_url)
         image_file, isimage = get_image(image_url)
         if isimage:
             print("Getting: " + data.get("title"))
