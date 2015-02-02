@@ -53,9 +53,9 @@ def get_from_cache():
     return image_file
 
 
-def get_from_subreddit(subred):
+def get_from_subreddit(subred, limit=20):
     print("Getting wallpaper from: " + subred)
-    response = urllib.request.urlopen("http://reddit.com/r/" + subred + ".json?limit=100")
+    response = urllib.request.urlopen("http://reddit.com/r/" + subred + ".json?limit=" + str(limit))
     body = response.read()
     headers = response.getheader("Content-Type").split(';')
 
@@ -86,6 +86,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Set wallpaper from reddit/cache')
     parser.add_argument('subreddit', nargs='?', help="Subreddit to fetch wallpaper from" )
+    parser.add_argument('--limit','-l',type=int, default=20, help="Number of posts to scan from a subreddit (default=20)")
     Args = parser.parse_args();
     try:
         oldwall = WALL_DIR+os.listdir(WALL_DIR)[0]
@@ -93,7 +94,7 @@ if __name__ == "__main__":
         oldwall = ""
     if Args.subreddit is not None:
         subreddit = Args.subreddit
-        img_file = get_from_subreddit(subreddit)
+        img_file = get_from_subreddit(subreddit, Args.limit)
     else:
         img_file = get_from_cache()
 
