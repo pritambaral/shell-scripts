@@ -100,6 +100,7 @@ if __name__ == "__main__":
     parser.add_argument('subreddit', nargs='?', help="Subreddit to fetch wallpaper from" )
     parser.add_argument('--limit','-l',type=int, default=20, help="Number of posts to scan from a subreddit (default=20)")
     parser.add_argument('--file','-f',help="Specify a particular file to put as wallpaper")
+    parser.add_argument('--url','-u',help="Download a specific file to put as wallpaper") #TODO: Group -u/-f mutually excl.
     Args = parser.parse_args();
     try:
         oldwall = WALL_DIR+os.listdir(WALL_DIR)[0]
@@ -107,6 +108,8 @@ if __name__ == "__main__":
         oldwall = ""
     if Args.file is not None:
         img_file = open(Args.file,"rb")
+    elif Args.url is not None:
+        img_file,_ = get_image(Args.url)
     elif Args.subreddit is not None:
         subreddit = Args.subreddit
         img_file = get_from_subreddit(subreddit, Args.limit)
