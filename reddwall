@@ -15,10 +15,16 @@ WALL_DIR = SOURCE_DIR + "/wallpaper/"
 
 
 def is_image(http_message):
+    """
+    Check whether an http response is of an image
+    """
     return "image" in http_message.getheader("Content-Type")
 
 
 def get_charset(http_message):
+    """
+    Get charset from an http response
+    """
     cset = http_message.get_content_charset()
     if len(cset) == 0:
         cset = 'utf-8'
@@ -26,6 +32,12 @@ def get_charset(http_message):
 
 
 def get_image(url):
+    """
+    Get image from url and return a file object for reading.
+    It downloads the image and stores it in the cache directory.
+    The image is identified by its filename. If a file with the
+    same name exists, It will not download it.
+    """
     filename = urlparse(url).path.split('/')[-1]
     if filename in cache:
         return open(CACHE_DIR + filename, "rb"), True
