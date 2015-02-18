@@ -54,12 +54,19 @@ def get_image(url):
 
 
 def init_cache():
+    """
+    Populate the entire list of images in cache directory.
+    """
+    # TODO: Find a better way to do it
     global cache
     cache = os.listdir(CACHE_DIR)
     return cache
 
 
 def get_from_cache():
+    """
+    Fetch image from local cache. Returns a file object.
+    """
     print("Getting wallpaper from local cache")
     filename = random.choice(cache)
     image_file = open(CACHE_DIR + filename, "rb")
@@ -67,19 +74,25 @@ def get_from_cache():
 
 
 def get_from_subreddit(subred, limit=20):
+    """
+    Get an image from a subreddit alongwith options.
+    Fetches the list of posts, selects a post randomly and tries to
+    download it as image, if not an image then selects another post in random
+    Returns file pointer to the downloaded file
+    """
     print("Getting wallpaper from: " + subred)
     response = urllib.request.urlopen("http://reddit.com/r/" + subred + ".json?limit=" + str(limit))
     body = response.read()
     headers = response.getheader("Content-Type").split(';')
 
-    #TODO: Handle non json requests
+    # TODO: Handle non json requests
     charset = headers[1].split("=")[1].lower()
     if len(charset) == 0:
         charset = 'utf-8'  # Default
     json_response = body.decode(charset)
     js = json.loads(json_response)
     children = js.get("data").get("children")
-    #TODO: Warning Possibility of infinite loop
+    # TODO: Warning Possibility of infinite loop
     image_file = None
     while True:
         child = random.choice(children)
