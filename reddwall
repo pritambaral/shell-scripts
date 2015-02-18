@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 import urllib.request
 import os
 import random
-import sys
 import argparse
 
 cache = []
@@ -106,23 +105,27 @@ def get_from_subreddit(subred, limit=20):
             break
     return image_file
 
+
 if __name__ == "__main__":
     cache = init_cache()
 
     parser = argparse.ArgumentParser(description='Set wallpaper from reddit/cache')
-    parser.add_argument('subreddit', nargs='?', help="Subreddit to fetch wallpaper from" )
-    parser.add_argument('--limit','-l',type=int, default=20, help="Number of posts to scan from a subreddit (default=20)")
-    parser.add_argument('--file','-f',help="Specify a particular file to put as wallpaper")
-    parser.add_argument('--url','-u',help="Download a specific file to put as wallpaper") #TODO: Group -u/-f mutually excl.
-    Args = parser.parse_args();
+    parser.add_argument('subreddit', nargs='?', help="Subreddit to fetch wallpaper from")
+    parser.add_argument('--limit', '-l', type=int, default=20,
+                        help="Number of posts to scan from a subreddit (default=20)")
+    parser.add_argument('--file', '-f', help="Specify a particular file to put as wallpaper")
+    parser.add_argument('--url', '-u',
+                        help="Download a specific file to put as wallpaper")  # TODO: Group -u/-f mutually excl.
+    Args = parser.parse_args()
     try:
-        oldwall = WALL_DIR+os.listdir(WALL_DIR)[0]
+        # Ideally, there should be at most one file in the `walls` directory,
+        oldwall = WALL_DIR + os.listdir(WALL_DIR)[0]
     except IndexError:
         oldwall = ""
     if Args.file is not None:
-        img_file = open(Args.file,"rb")
+        img_file = open(Args.file, "rb")
     elif Args.url is not None:
-        img_file,_ = get_image(Args.url)
+        img_file, _ = get_image(Args.url)
     elif Args.subreddit is not None:
         subreddit = Args.subreddit
         img_file = get_from_subreddit(subreddit, Args.limit)
@@ -130,7 +133,7 @@ if __name__ == "__main__":
         img_file = get_from_cache()
 
     content = img_file.read()
-    newfile = WALL_DIR+"wallpaper"+os.path.splitext(img_file.name)[1]
+    newfile = WALL_DIR + "wallpaper" + os.path.splitext(img_file.name)[1]
     tfp = open(newfile, "wb")
     tfp.write(content)
     tfp.close()
