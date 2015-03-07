@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import urllib.request
 import os
 import random
+import re
 import argparse
 
 cache = []
@@ -110,12 +111,12 @@ if __name__ == "__main__":
     cache = init_cache()
 
     parser = argparse.ArgumentParser(description='Set wallpaper from reddit/cache')
-    parser.add_argument('subreddit', nargs='?', help="Subreddit to fetch wallpaper from")
+    parser.add_argument('source', nargs='?', help="File/URL/Subreddit to fetch wallpaper from")
     parser.add_argument('--limit', '-l', type=int, default=20,
                         help="Number of posts to scan from a subreddit (default=20)")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--file', '-f', help="Specify a particular file to put as wallpaper")
-    group.add_argument('--url', '-u',
+    group.add_argument('--file', '-f', action="store_true", help="Specify a particular file to put as wallpaper")
+    group.add_argument('--url', '-u', action="store_true",
                         help="Download a specific file to put as wallpaper")
     Args = parser.parse_args()
     try:
@@ -123,13 +124,20 @@ if __name__ == "__main__":
         oldwall = WALL_DIR + os.listdir(WALL_DIR)[0]
     except IndexError:
         oldwall = ""
-    if Args.file is not None:
-        img_file = open(Args.file, "rb")
-    elif Args.url is not None:
-        img_file, _ = get_image(Args.url)
-    elif Args.subreddit is not None:
-        subreddit = Args.subreddit
-        img_file = get_from_subreddit(subreddit, Args.limit)
+    if Args.file:
+        img_file = open(Args.source, "rb")
+    elif Args.url:
+        img_file, _ = get_image(Args.source)
+    elif Args.source is not None:
+        source = Args.source
+
+        # Be smart about links, files, subreddits
+        if re.match(r'^http(s)?://', source):
+            img_file, _ = get_image(source)
+        elif os.path.exists(source):
+            img_file = open(source, "rb")
+        else:
+            img_file = get_from_subreddit(source, Args.limit)
     else:
         img_file = get_from_cache()
 
