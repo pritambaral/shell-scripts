@@ -113,9 +113,10 @@ if __name__ == "__main__":
     parser.add_argument('subreddit', nargs='?', help="Subreddit to fetch wallpaper from")
     parser.add_argument('--limit', '-l', type=int, default=20,
                         help="Number of posts to scan from a subreddit (default=20)")
-    parser.add_argument('--file', '-f', help="Specify a particular file to put as wallpaper")
-    parser.add_argument('--url', '-u',
-                        help="Download a specific file to put as wallpaper")  # TODO: Group -u/-f mutually excl.
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--file', '-f', help="Specify a particular file to put as wallpaper")
+    group.add_argument('--url', '-u',
+                        help="Download a specific file to put as wallpaper")
     Args = parser.parse_args()
     try:
         # Ideally, there should be at most one file in the `walls` directory,
